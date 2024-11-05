@@ -1,34 +1,179 @@
-.App {
+/* styles/AgendaManagement.css */
+
+.agenda-container {
+  min-height: 100vh;
+  background-color: rgb(249 250 251);
+  padding: 2rem;
+}
+
+.agenda-title {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: rgb(31 41 55);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  border-left-width: 4px;
+}
+
+.stat-card.status-green {
+  border-color: rgb(34 197 94);
+}
+
+.stat-card.status-red {
+  border-color: rgb(239 68 68);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-text {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+}
+
+.stat-suffix {
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+  margin-left: 0.25rem;
+}
+
+.icon-green {
+  color: rgb(34 197 94);
+  height: 2rem;
+  width: 2rem;
+}
+
+.icon-red {
+  color: rgb(239 68 68);
+  height: 2rem;
+  width: 2rem;
+}
+
+.table-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(255 255 255 / 0.75);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-content {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.loading-spinner {
+  height: 2rem;
+  width: 2rem;
+  animation: spin 1s linear infinite;
+  color: rgb(59 130 246);
+  margin: 0 auto;
+  margin-bottom: 0.5rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.table {
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.table-header {
+  background-color: rgb(249 250 251);
 }
 
-.App-link {
-  color: #61dafb;
+.table-header-cell {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  color: rgb(107 114 128);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-@keyframes App-logo-spin {
+.table-row {
+  border-bottom: 1px solid rgb(229 231 235);
+  transition: background-color 200ms;
+}
+
+.table-row:hover {
+  background-color: rgb(249 250 251);
+}
+
+.table-cell {
+  padding: 1rem 1.5rem;
+  white-space: nowrap;
+}
+
+.drag-handle {
+  cursor: move;
+  color: rgb(156 163 175);
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.note-type-badge {
+  padding: 0.25rem 0.5rem;
+  display: inline-flex;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: rgb(219 234 254);
+  color: rgb(29 78 216);
+}
+
+.select-input {
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid rgb(209 213 219);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.select-input:focus {
+  border-color: rgb(59 130 246);
+  ring: 1px rgb(59 130 246);
+}
+
+@keyframes spin {
   from {
     transform: rotate(0deg);
   }
