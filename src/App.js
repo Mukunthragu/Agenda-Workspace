@@ -45,7 +45,7 @@ const App = () => {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            //'Authorization': 'Basic '
+            'Authorization': 'Basic bXVrdW50aHI6TXVrbnV2ITIzMiE='
 
           }
         });
