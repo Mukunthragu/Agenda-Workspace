@@ -1,10 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, ListOrdered, CheckSquare, X, Check, MoveVertical, Loader2 } from 'lucide-react';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import agendaData from "./data/agendaData";
+import agendaItemsData from "./data/agendaItemsData";
+import {
+  Clock,
+  ListOrdered,
+  CheckSquare,
+  X,
+  Check,
+  MoveVertical,
+  Loader2,
+} from "lucide-react";
+import "./App.css";
 
 const StatCard = ({ icon: Icon, title, value, status }) => {
-  const statusClass = status.value >= status.threshold ? 'status-green' : 'status-red';
-  const iconClass = status.value >= status.threshold ? 'icon-green' : 'icon-red';
+  const statusClass =
+    status.value >= status.threshold ? "status-green" : "status-red";
+  const iconClass =
+    status.value >= status.threshold ? "icon-green" : "icon-red";
 
   return (
     <div className={`stat-card ${statusClass}`}>
@@ -13,7 +25,9 @@ const StatCard = ({ icon: Icon, title, value, status }) => {
           <p className="stat-text">{title}</p>
           <p className="stat-value">
             {value}
-            {status.suffix && <span className="stat-suffix">{status.suffix}</span>}
+            {status.suffix && (
+              <span className="stat-suffix">{status.suffix}</span>
+            )}
           </p>
         </div>
         <Icon className={iconClass} />
@@ -23,82 +37,40 @@ const StatCard = ({ icon: Icon, title, value, status }) => {
 };
 
 const App = () => {
+  const [agenda, setAgenda] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [draggedItem, setDraggedItem] = useState(null);
+  const [showJSON, setShowJSON] = useState(false);
 
   useEffect(() => {
-    const fetchServiceNowData = async () => {
-      setLoading(true);
-      try {
-        
-        const baseUrl = 'https://dev.servicemanagement.nbb.be';
-        const endpoint = '/api/now/table/x_nabob_governin_0_topic';
-        const params = new URLSearchParams({
-          sysparm_fields: 'sys_id,short_description,u_item_start,u_item_end,discussion_time_required,schedule_clearance,postpone,type_of_note',
-          sysparm_query: 'agenda.nameSTARTSWITHBoard of Directors 2027-05-11',
-          sysparm_display_value: 'true'
-        });
-
-        const response = await fetch(`${baseUrl}${endpoint}?${params}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic TVVLVU5USFI6TXVrbnV2ITIzMiE='
-
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const formattedItems = data.result.map((item, index) => ({
-          id: index.toString(),
-          agendaItem: item.short_description,
-          startTime: item.u_item_start || '00:00:00',
-          endTime: item.u_item_end || '00:00:00',
-          duration: item.discussion_time_required || 'Not specified',
-          noteType: item.type_of_note,
-          order: (index + 1).toString(),
-          schedule: item.schedule_clearance === 'true',
-          postpone: item.postpone || 'No'
-        }));
-
-        setItems(formattedItems);
-      } catch (error) {
-        console.error('Error fetching ServiceNow data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchServiceNowData();
+    // Load mock data
+    setAgenda(agendaData);
+    setItems(agendaItemsData);
+    setLoading(false);
   }, []);
 
   const handleDragStart = (e, index) => {
     setDraggedItem(index);
-    e.currentTarget.style.opacity = '0.5';
-    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.style.opacity = "0.5";
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const handleDragEnd = (e) => {
-    e.currentTarget.style.opacity = '1';
+    e.currentTarget.style.opacity = "1";
     setDraggedItem(null);
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = "move";
   };
 
   const handleDrop = (e, index) => {
     e.preventDefault();
-    
+
     if (draggedItem === null) return;
-    
+
     setLoading(true);
     const newItems = [...items];
     const [draggedItemContent] = newItems.splice(draggedItem, 1);
@@ -106,7 +78,7 @@ const App = () => {
 
     const updatedItems = newItems.map((item, idx) => ({
       ...item,
-      order: (idx + 1).toString()
+      order: (idx + 1).toString(),
     }));
 
     setTimeout(() => {
@@ -115,38 +87,138 @@ const App = () => {
     }, 800);
   };
 
+  const calculateTimePercentage = (time, start, end) => {
+    const parseTime = (timeStr) => {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+    const totalDuration = parseTime(end) - parseTime(start);
+    const elapsedTime = parseTime(time) - parseTime(start);
+    return (elapsedTime / totalDuration) * 100;
+  };
+
+  const handlePostponeChange = (index, value) => {
+    const updatedItems = [...items];
+    updatedItems[index] = { ...updatedItems[index], postpone: value };
+    setItems(updatedItems);
+  };
+
   return (
     <div className="agenda-container">
       <h1 className="agenda-title">Agenda Management Workspace</h1>
 
+      {agenda && (
+        <div className="agenda-header">
+          <h2 className="agenda-header-title">{agenda.name}</h2>
+          <p className="agenda-header-info">
+            <strong>Start Time:</strong> {agenda.startTime} |{" "}
+            <strong>End Time:</strong> {agenda.endTime}
+          </p>
+          <p className="agenda-header-info">
+            <strong>Meeting Environment:</strong> {agenda.meetingEnvironment}
+          </p>
+
+          <div className="chronology-bar">
+            <div
+              className="chronology-segment"
+              style={{
+                width: "100%",
+                position: "relative",
+              }}
+            >
+              {agenda.lunch && (
+                <div
+                  className="lunch-highlight"
+                  style={{
+                    left: `${calculateTimePercentage(
+                      agenda.lunchStartTime,
+                      agenda.startTime,
+                      agenda.endTime
+                    )}%`,
+                    width: `${
+                      calculateTimePercentage(
+                        agenda.lunchEndTime,
+                        agenda.startTime,
+                        agenda.endTime
+                      ) -
+                      calculateTimePercentage(
+                        agenda.lunchStartTime,
+                        agenda.startTime,
+                        agenda.endTime
+                      )
+                    }%`,
+                  }}
+                >
+                  <span className="lunch-label">Lunch</span>
+                </div>
+              )}
+            </div>
+            {agenda.lunch && (
+              <div className="lunch-chronology-labels">
+                <span
+                  style={{
+                    position: "absolute",
+                    left: `calc(${calculateTimePercentage(
+                      agenda.lunchStartTime,
+                      agenda.startTime,
+                      agenda.endTime
+                    )}% + 10px)`,
+                    transform: "translateX(-50%)",
+                  }}
+                >
+                  {agenda.lunchStartTime}
+                </span>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: `calc(${calculateTimePercentage(
+                      agenda.lunchEndTime,
+                      agenda.startTime,
+                      agenda.endTime
+                    )}% - 10px)`,
+                    transform: "translateX(-50%)",
+                  }}
+                >
+                  {agenda.lunchEndTime}
+                </span>
+              </div>
+            )}
+            <div className="chronology-labels">
+              <span>{agenda.startTime}</span>
+              <span>{agenda.endTime}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="stats-grid">
-        <StatCard 
-          icon={ListOrdered} 
-          title="Order" 
-          value={items.filter(item => item.order).length}
+        <StatCard
+          icon={ListOrdered}
+          title="Order"
+          value={items.filter((item) => item.order).length}
           status={{
-            value: items.filter(item => item.order).length,
+            value: items.filter((item) => item.order).length,
             threshold: items.length,
-            suffix: `/ ${items.length}`
+            suffix: `/ ${items.length}`,
           }}
         />
-        <StatCard 
-          icon={CheckSquare} 
-          title="Schedule" 
-          value={items.filter(item => item.schedule).length}
+        <StatCard
+          icon={CheckSquare}
+          title="Schedule"
+          value={items.filter((item) => item.schedule).length}
           status={{
-            value: items.filter(item => item.schedule).length,
+            value: items.filter((item) => item.schedule).length,
             threshold: Math.ceil(items.length * 0.8),
-            suffix: `/ ${items.length}`
+            suffix: `/ ${items.length}`,
           }}
         />
-        <StatCard 
-          icon={Clock} 
-          title="Timeline" 
+        <StatCard
+          icon={Clock}
+          title="Timeline"
           value="On Track"
           status={{
             value: 1,
-            threshold: 1
+            threshold: 1,
           }}
         />
       </div>
@@ -160,7 +232,7 @@ const App = () => {
             </div>
           </div>
         )}
-        
+
         <table className="table">
           <thead className="table-header">
             <tr>
@@ -196,9 +268,7 @@ const App = () => {
                 <td className="table-cell">{item.endTime}</td>
                 <td className="table-cell">{item.duration}</td>
                 <td className="table-cell">
-                  <span className="note-type-badge">
-                    {item.noteType}
-                  </span>
+                  <span className="note-type-badge">{item.noteType}</span>
                 </td>
                 <td className="table-cell">{item.order}</td>
                 <td className="table-cell">
@@ -209,9 +279,12 @@ const App = () => {
                   )}
                 </td>
                 <td className="table-cell">
-                  <select 
+                  <select
                     className="select-input"
                     value={item.postpone}
+                    onChange={(e) =>
+                      handlePostponeChange(index, e.target.value)
+                    }
                   >
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
@@ -221,6 +294,24 @@ const App = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="button-container">
+        <button className="action-button sort-button">Sort Items</button>
+        <button className="action-button submit-button">Submit</button>
+      </div>
+
+      {/* Toggleable JSON Viewer */}
+      <div className="json-toggle-container">
+        <button
+          className="toggle-json-button"
+          onClick={() => setShowJSON(!showJSON)}
+        >
+          {showJSON ? "Hide JSON" : "Show JSON"}
+        </button>
+        {showJSON && (
+          <pre className="json-display">{JSON.stringify(items, null, 2)}</pre>
+        )}
       </div>
     </div>
   );
